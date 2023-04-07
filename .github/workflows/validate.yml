@@ -6,6 +6,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      CHECK_FAVICON: False
     steps:
     - uses: actions/checkout@v2 # Requried will all actions
     - name: Checks HTML
