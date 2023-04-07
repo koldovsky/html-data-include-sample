@@ -1,16 +1,56 @@
-name: HTML Check
+name: HTML Proofer
 
 on:
   push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      CHECK_FAVICON: False
+
     steps:
-    - uses: actions/checkout@v2 # Requried will all actions
-    - name: Checks HTML
-      uses: anishathalye/proof-html@v2
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
       with:
-        directory: ./
+        node-version: 14
+
+    - name: Install dependencies
+      run: |
+        npm ci
+        npm install puppeteer
+
+    - name: Render dynamic HTML using Puppeteer
+      run: |
+        for file in $(find . -maxdepth 1 -iname "*.html" ! -iname "*.partial.html"); do
+          node -e "const puppeteer = require('puppeteer');
+          (async () => {
+            const browser = await puppeteer.launch();
+            const page = await browser.newPage();
+            await page.goto('file://' + __dirname + '/${file:2}', {waitUntil: 'networkidle0'});
+            const html = await page.content();
+            await browser.close();
+            const fs = require('fs');
+            fs.writeFileSync('${file:2}.rendered', html);
+          })();"
+        done
+
+    - name: Set up Ruby
+      uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: 3.0
+
+    - name: Install HTML Proofer
+      run: gem install html-proofer
+
+    - name: Run HTML Proofer
+      run: |
+        for file in $(find . -maxdepth 1 -iname "*.html.rendered"); do
+          htmlproofer $file --disable-external
+        done
