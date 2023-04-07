@@ -36,14 +36,14 @@ jobs:
           echo "Processing file: ${file:2}"
           node -e "const puppeteer = require('puppeteer');
           (async () => {
-            const url = `http://localhost:8080/${file:2}`;
+            const url = 'http://localhost:8080/${file:2}';
             const browser = await puppeteer.launch();
             const page = await browser.newPage();
             await page.goto(url, {waitUntil: 'networkidle0'});
             const html = await page.content();
             await browser.close();
             const fs = require('fs');
-            fs.writeFileSync(`${file:2}.rendered.html`, html);
+            fs.writeFileSync('${file:2}.rendered.html', html);
           })().catch(err => {
             console.error('Error processing file:', err);
             process.exit(1);
