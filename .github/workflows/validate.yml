@@ -23,7 +23,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        npm ci
+        [ -f package.json ] && npm ci || npm init -y
         npm install puppeteer
 
     - name: Render dynamic HTML using Puppeteer
