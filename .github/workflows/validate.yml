@@ -24,22 +24,33 @@ jobs:
     - name: Install dependencies
       run: |
         [ -f package.json ] && npm ci || npm init -y
-        npm install puppeteer
+        npm install puppeteer http-server
 
-    - name: Render dynamic HTML using Puppeteer
+    - name: Serve files and render dynamic HTML using Puppeteer
       run: |
+        npx http-server -p 8080 &
+        SERVER_PID=$!
+        sleep 5
+
         for file in $(find . -maxdepth 1 -iname "*.html" ! -iname "*.partial.html"); do
+          echo "Processing file: ${file:2}"
           node -e "const puppeteer = require('puppeteer');
           (async () => {
+            const url = 'http://localhost:8080/${file:2}';
             const browser = await puppeteer.launch();
             const page = await browser.newPage();
-            await page.goto('file://' + __dirname + '/${file:2}', {waitUntil: 'networkidle0'});
+            await page.goto(url, {waitUntil: 'networkidle0'});
             const html = await page.content();
             await browser.close();
             const fs = require('fs');
             fs.writeFileSync('${file:2}.rendered', html);
-          })();"
+          })().catch(err => {
+            console.error('Error processing file:', err);
+            process.exit(1);
+          });"
         done
+
+        kill $SERVER_PID
 
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
