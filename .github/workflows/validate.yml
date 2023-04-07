@@ -43,7 +43,6 @@ jobs:
             const html = await page.content();
             await browser.close();
             const fs = require('fs');
-            console.log({html});
             fs.writeFileSync('${file:2}.rendered.html', html);
           })().catch(err => {
             console.error('Error processing file:', err);
@@ -64,6 +63,5 @@ jobs:
     - name: Run HTML Proofer
       run: |
         for file in $(find . -maxdepth 1 -iname "*.rendered.html"); do
-          cat $file
-          htmlproofer $file --disable-external
+          htmlproofer $file --verbose --disable-external
         done
