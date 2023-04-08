@@ -34,6 +34,7 @@ jobs:
 
         for file in $(find . -maxdepth 1 -iname "*.html" ! -iname "*.partial.html"); do
           echo "Processing file: ${file:2}"
+          output_file="$(basename $file .html).rendered.html"
           node -e "const puppeteer = require('puppeteer');
           (async () => {
             const url = 'http://localhost:8080/${file:2}';
@@ -43,7 +44,7 @@ jobs:
             const html = await page.content();
             await browser.close();
             const fs = require('fs');
-            fs.writeFileSync('${file:2}.rendered.html', html);
+            fs.writeFileSync('$output_file', html);
           })().catch(err => {
             console.error('Error processing file:', err);
             process.exit(1);
